@@ -1,19 +1,24 @@
 module CityList where
 
 import Html exposing (..)
+import Html.Attributes exposing (value)
+import Html.Events exposing (on, onClick, targetValue)
 import Effects exposing (Effects)
-import Array exposing (Array, map, set, get, indexedMap, fromList, toList)
+import Array exposing (..)
 import List
 import City
 
 -- Types
 
 type alias Model =
-    { cities : Array City.Model
+    { newCity : String
+    , cities : Array City.Model
     }
 
 type Action
     = ListAction Int City.Action
+    | SetCityInput String
+    | CreateCity
 
 -- Model / View / Update
 
@@ -25,7 +30,7 @@ init cities =
             fromList
             <| List.map City.init cities
     in
-        ( Model
+        ( Model ""
             <| map fst initialModels
         , Effects.batch
             <| toList
@@ -35,6 +40,22 @@ init cities =
 update : Action -> Model -> (Model, Effects Action)
 update action model =
     case action of
+        SetCityInput input ->
+            ( { model | newCity = input }
+            , Effects.none
+            )
+        CreateCity ->
+            let
+                (newCityModel, newCityEffects) =
+                    City.init model.newCity
+                newCityList =
+                    push newCityModel model.cities
+                newCityIndex =
+                    length newCityList - 1
+            in
+                ( { model | cities = newCityList, newCity = "" }
+                , Effects.map (ListAction newCityIndex) newCityEffects
+                )
         ListAction index cityAction ->
             case get index model.cities of
                 Just city ->
@@ -52,9 +73,13 @@ update action model =
 
 view : Signal.Address Action -> Model -> Html
 view address model =
-    ul []
-        <| toList
-        <| indexedMap (viewCity address) model.cities
+    div []
+        [ input [ value model.newCity, on "input" targetValue (Signal.message address << SetCityInput) ] []
+        , button [ onClick address CreateCity ] [ text "Create City" ]
+        , ul []
+            <| toList
+            <| indexedMap (viewCity address) model.cities
+        ]
 
 viewCity : Signal.Address Action -> Int -> City.Model -> Html
 viewCity address id model =

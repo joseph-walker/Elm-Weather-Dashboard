@@ -4,6 +4,7 @@ import Http
 import Task
 import String
 import Html exposing (..)
+import Html.Events exposing (onClick)
 import Effects exposing (Effects)
 import Json.Decode as Json exposing ((:=), Decoder)
 
@@ -20,6 +21,7 @@ type Temperature
 
 type Action
     = UpdateTemp (Maybe Temperature)
+    | RefreshWeather
 
 -- Model / View / Update
 
@@ -32,6 +34,10 @@ init city =
 update : Action -> Model -> (Model, Effects Action)
 update action model =
     case action of
+        RefreshWeather ->
+            ( { model | temp = Loading }
+            , getTemperature model.city
+            )
         UpdateTemp temp ->
             case temp of
                 Just deg ->
@@ -43,7 +49,10 @@ view : Signal.Address Action -> Model -> Html
 view address model =
     case model.temp of
         Degrees temperature ->
-            text <| model.city ++ ": " ++ (toString temperature) ++ "°F"
+            div []
+                [ span [] [ text <| model.city ++ ": " ++ (toString temperature) ++ "°F" ]
+                , button [ onClick address RefreshWeather ] [ text "Referesh " ]
+                ]
         Loading ->
             text <| model.city ++ ": Loading..."
 

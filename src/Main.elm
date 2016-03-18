@@ -10,14 +10,7 @@ port tasks =
 
 citiesToMonitor : List String
 citiesToMonitor =
-    [ "Tyler, Texas"
-    , "San Francisco, California"
-    , "London, England"
-    , "Berlin, Germany"
-    , "Moscow, Russia"
-    , "Buenos Aires, Argentina"
-    , "Stockholm, Sweden"
-    ]
+    []
 
 app : StartApp.App Model
 app =
